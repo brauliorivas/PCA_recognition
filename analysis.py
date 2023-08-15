@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
-
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.metrics.pairwise import pairwise_distances
 
 def load_and_preprocess_images(folder_path, label):
     images = []
@@ -56,42 +56,45 @@ X_train, X_test, y_train, y_test = train_test_split(
 # X_test: Features for testing
 # y_test: Labels for testing
 
-# Step 3: Perform PCA.
+# Train separate PCA models for Russia and Ukraine (same as before)
 # Calculate the minimum of n_samples and n_features
-min_components = min(X_train.shape[0], X_train.shape[1])
+n_components = 4  # Adjust this value based on your preference and dataset size
 
-# Choose a reasonable value for n_components (e.g., 150 or less)
-n_components = min(min_components, 150)
+# Train separate PCA models for Russia and Ukraine
+pca_russia = PCA(n_components=n_components).fit(russia_images)
+pca_ukraine = PCA(n_components=n_components).fit(ukraine_images)
 
-# Perform PCA with the chosen n_components
-pca = PCA(n_components=n_components).fit(X_train)
-# Transform training and testing data
-X_train_pca = pca.transform(X_train)
-X_test_pca = pca.transform(X_test)
-# Step 5: Initialize Classifier and fit training data
-clf = SVC(kernel='rbf', C=1000, gamma=0.001)
-clf.fit(X_train_pca, y_train)
+# Transform testing data using PCA models
+X_test_russia_pca = pca_russia.transform(X_test[y_test == 'Russia'])
+X_test_ukraine_pca = pca_ukraine.transform(X_test[y_test == 'Ukraine'])
 
-# Step 6: Perform testing and get classification report
-y_pred = clf.predict(X_test_pca)
-print(classification_report(y_test, y_pred))
 
-# Russia
-# Load and preprocess the new image
-new_image = load_and_preprocess_image("./data/russia/vladimir.jpg")
-# Wrap new_image in a list to create a 2D array
-new_image_pca = pca.transform([new_image])
+def predict_nationality(pca_russia, pca_ukraine, new_image):
+    # Transform new image using PCA models
+    new_image_russia_pca = pca_russia.transform([new_image])
+    new_image_ukraine_pca = pca_ukraine.transform([new_image])
 
-# Predict nationality of the new image
-predicted_nationality = clf.predict(new_image_pca)
-print("Predicted Nationality:", predicted_nationality[0])
+    # Calculate distances between new image and transformed images of each country
+    distance_russia = pairwise_distances(new_image_russia_pca, X_test_russia_pca, metric='cosine')
+    distance_ukraine = pairwise_distances(new_image_ukraine_pca, X_test_ukraine_pca, metric='cosine')
 
-# Ukraine
-# Load and preprocess the new image
-new_image = load_and_preprocess_image("./data/ukraine/volodemir.jpg")
-# Wrap new_image in a list to create a 2D array
-new_image_pca = pca.transform([new_image])
+    # Calculate the minimum distance for each country
+    min_distance_russia = np.min(distance_russia)
+    min_distance_ukraine = np.min(distance_ukraine)
 
-# Predict nationality of the new image
-predicted_nationality = clf.predict(new_image_pca)
-print("Predicted Nationality:", predicted_nationality[0])
+    # Compare minimum distances and make prediction
+    if min_distance_russia < min_distance_ukraine:
+        return "Russia"
+    else:
+        return "Ukraine"
+
+# Load and preprocess the new images
+new_image_russia = load_and_preprocess_image("./data/russia/vladimir.jpg")
+new_image_ukraine = load_and_preprocess_image("./data/ukraine/volodemir.jpg")
+
+# Predict nationality for each image
+predicted_nationality_russia = predict_nationality(pca_russia, pca_ukraine, new_image_russia)
+predicted_nationality_ukraine = predict_nationality(pca_russia, pca_ukraine, new_image_ukraine)
+
+print("Predicted Nationality for Vladimir:", predicted_nationality_russia)
+print("Predicted Nationality for Volodemir:", predicted_nationality_ukraine)
