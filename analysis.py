@@ -2,9 +2,7 @@ from PIL import Image
 import os
 import numpy as np
 from sklearn.decomposition import PCA
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import pairwise_distances
 
 def load_and_preprocess_images(folder_path, label):
