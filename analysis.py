@@ -6,6 +6,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
+
 def load_and_preprocess_images(folder_path, label):
     images = []
     labels = []
@@ -14,10 +15,12 @@ def load_and_preprocess_images(folder_path, label):
             image_path = os.path.join(folder_path, filename)
             img = Image.open(image_path).convert("L")  # Convert to grayscale
             img = img.resize((64, 64))  # Resize to a consistent size
-            img_array = np.array(img).flatten()  # Flatten image into a 1D array
+            # Flatten image into a 1D array
+            img_array = np.array(img).flatten()
             images.append(img_array)
             labels.append(label)
     return images, labels
+
 
 def load_and_preprocess_image(image_path):
     img = Image.open(image_path).convert("L")  # Convert to grayscale
@@ -31,8 +34,10 @@ russia_folder = "./data/russia/"
 ukraine_folder = "./data/ukraine/"
 
 # Load and preprocess images from each folder
-russia_images, russia_labels = load_and_preprocess_images(russia_folder, label="Russia")
-ukraine_images, ukraine_labels = load_and_preprocess_images(ukraine_folder, label="Ukraine")
+russia_images, russia_labels = load_and_preprocess_images(
+    russia_folder, label="Russia")
+ukraine_images, ukraine_labels = load_and_preprocess_images(
+    ukraine_folder, label="Ukraine")
 
 # Combine the data from both countries
 all_images = russia_images + ukraine_images
@@ -43,7 +48,8 @@ X = np.array(all_images)
 y = np.array(all_labels)
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
 
 # X_train: Features for training
 # y_train: Labels for training
@@ -70,19 +76,21 @@ clf.fit(X_train_pca, y_train)
 y_pred = clf.predict(X_test_pca)
 print(classification_report(y_test, y_pred))
 
-# Ukraine
+# Russia
 # Load and preprocess the new image
-new_image = load_and_preprocess_image("./data/ukraine/volodemir.jpg")
-new_image_pca = pca.transform([new_image])  # Wrap new_image in a list to create a 2D array
+new_image = load_and_preprocess_image("./data/russia/vladimir.jpg")
+# Wrap new_image in a list to create a 2D array
+new_image_pca = pca.transform([new_image])
 
 # Predict nationality of the new image
 predicted_nationality = clf.predict(new_image_pca)
 print("Predicted Nationality:", predicted_nationality[0])
 
-# Rusia
+# Ukraine
 # Load and preprocess the new image
-new_image = load_and_preprocess_image("./data/russia/vladimir.jpg")
-new_image_pca = pca.transform([new_image])  # Wrap new_image in a list to create a 2D array
+new_image = load_and_preprocess_image("./data/ukraine/volodemir.jpg")
+# Wrap new_image in a list to create a 2D array
+new_image_pca = pca.transform([new_image])
 
 # Predict nationality of the new image
 predicted_nationality = clf.predict(new_image_pca)
