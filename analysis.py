@@ -27,7 +27,7 @@ def load_and_preprocess_image(image_path):
 
 
 # Specify paths to your image folders
-russia_folder = "./data/rusia/"
+russia_folder = "./data/russia/"
 ukraine_folder = "./data/ukraine/"
 
 # Load and preprocess images from each folder
@@ -81,7 +81,7 @@ print("Predicted Nationality:", predicted_nationality[0])
 
 # Rusia
 # Load and preprocess the new image
-new_image = load_and_preprocess_image("./data/rusia/vladimir.jpg")
+new_image = load_and_preprocess_image("./data/russia/vladimir.jpg")
 new_image_pca = pca.transform([new_image])  # Wrap new_image in a list to create a 2D array
 
 # Predict nationality of the new image
