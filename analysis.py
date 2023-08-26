@@ -66,22 +66,26 @@ pca_ukraine = PCA(n_components=n_components).fit(ukraine_images)
 X_test_russia_pca = pca_russia.transform(X_test[y_test == 'Russia'])
 X_test_ukraine_pca = pca_ukraine.transform(X_test[y_test == 'Ukraine'])
 
+# Threshold for decision
+threshold = 0.1  # Adjust this value based on experimentation
 
-def predict_nationality(pca_russia, pca_ukraine, new_image):
+def predict_nationality(pca_russia, pca_ukraine, new_image, threshold):
     # Transform new image using PCA models
     new_image_russia_pca = pca_russia.transform([new_image])
     new_image_ukraine_pca = pca_ukraine.transform([new_image])
 
     # Calculate distances between new image and transformed images of each country
-    distance_russia = pairwise_distances(new_image_russia_pca, X_test_russia_pca, metric='cosine')
-    distance_ukraine = pairwise_distances(new_image_ukraine_pca, X_test_ukraine_pca, metric='cosine')
+    distance_russia = pairwise_distances(new_image_russia_pca, X_test_russia_pca, metric='euclidean')
+    distance_ukraine = pairwise_distances(new_image_ukraine_pca, X_test_ukraine_pca, metric='euclidean')
 
     # Calculate the minimum distance for each country
     min_distance_russia = np.min(distance_russia)
     min_distance_ukraine = np.min(distance_ukraine)
 
     # Compare minimum distances and make prediction
-    if min_distance_russia < min_distance_ukraine:
+    if abs(min_distance_russia - min_distance_ukraine) < threshold:
+        return "Inconclusive"
+    elif min_distance_russia < min_distance_ukraine:
         return "Russia"
     else:
         return "Ukraine"
@@ -91,8 +95,8 @@ new_image_russia = load_and_preprocess_image("./data/russia/vladimir.jpg")
 new_image_ukraine = load_and_preprocess_image("./data/ukraine/volodemir.jpg")
 
 # Predict nationality for each image
-predicted_nationality_russia = predict_nationality(pca_russia, pca_ukraine, new_image_russia)
-predicted_nationality_ukraine = predict_nationality(pca_russia, pca_ukraine, new_image_ukraine)
+predicted_nationality_russia = predict_nationality(pca_russia, pca_ukraine, new_image_russia, threshold)
+predicted_nationality_ukraine = predict_nationality(pca_russia, pca_ukraine, new_image_ukraine, threshold)
 
 print("Predicted Nationality for Vladimir:", predicted_nationality_russia)
 print("Predicted Nationality for Volodemir:", predicted_nationality_ukraine)
